@@ -1,0 +1,388 @@
+@font-face {
+  font-family: 'Metal Mania Regular';
+  font-style: normal;
+  font-weight: normal;
+  src: url('metal-mania.regular.woff2') format('woff2'),
+      url('metal-mania.regular.woff') format('woff');
+}
+
+ul.cloud {
+  height: 100%;
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  line-height: 1rem;
+  width: 600px;
+}
+
+ul.cloud a {
+  /*   
+  Not supported by any browser at the moment :(
+  --size: attr(data-weight number); 
+  */
+  --size: 2;
+  --color: #a33;
+  color: var(--color);
+  font-size: calc(var(--size) * 0.15rem + 0.5rem);
+  display: block;
+  padding: 0.125rem 0.25rem;
+  position: relative;
+  text-decoration: none;
+  /* 
+  For different tones of a single color
+  opacity: calc((15 - (9 - var(--size))) / 15); 
+  */
+}
+
+ul.cloud a[data-weight="1"] { --size: 1; }
+ul.cloud a[data-weight="2"] { --size: 2; }
+ul.cloud a[data-weight="3"] { --size: 3; }
+ul.cloud a[data-weight="4"] { --size: 4; }
+ul.cloud a[data-weight="5"] { --size: 6; }
+ul.cloud a[data-weight="6"] { --size: 8; }
+ul.cloud a[data-weight="7"] { --size: 10; }
+ul.cloud a[data-weight="8"] { --size: 13; }
+ul.cloud a[data-weight="9"] { --size: 16; }
+
+ul[data-show-value] a::after {
+  content: " (" attr(data-weight) ")";
+  font-size: 1rem;
+}
+
+ul.cloud li:nth-child(2n+1) a { --color: #181; }
+ul.cloud li:nth-child(3n+1) a { --color: #33a; }
+ul.cloud li:nth-child(4n+1) a { --color: #c38; }
+
+ul.cloud a:focus {
+  outline: 1px dashed;
+}
+
+ul.cloud a::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0;
+  height: 100%;
+  background: var(--color);
+  transform: translate(-50%, 0);
+  opacity: 0.15;
+  transition: width 0.25s;
+}
+
+ul.cloud a:focus::before,
+ul.cloud a:hover::before {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion) {
+  ul.cloud * {
+    transition: none !important;
+  }
+}
+
+.code-demo {
+  border-radius: 10px;
+  box-shadow: 8px 8px 8px rgba(0,0,0,.5);
+}
+
+.loader {
+  margin-top: 10px;
+  position: relative;
+  width: 2.5em;
+  height: 2.5em;
+  transform: rotate(165deg);
+}
+
+.loader:before, .loader:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 0.25em;
+  transform: translate(-50%, -50%);
+}
+
+.loader:before {
+  animation: before 2s infinite;
+}
+
+.loader:after {
+  animation: after 2s infinite;
+}
+
+@keyframes before {
+  0% {
+    width: 0.5em;
+    box-shadow: 1em -0.5em rgba(225, 20, 98, 0.75), -1em 0.5em rgba(111, 202, 220, 0.75);
+  }
+  35% {
+    width: 2.5em;
+    box-shadow: 0 -0.5em rgba(225, 20, 98, 0.75), 0 0.5em rgba(111, 202, 220, 0.75);
+  }
+  70% {
+    width: 0.5em;
+    box-shadow: -1em -0.5em rgba(225, 20, 98, 0.75), 1em 0.5em rgba(111, 202, 220, 0.75);
+  }
+  100% {
+    box-shadow: 1em -0.5em rgba(225, 20, 98, 0.75), -1em 0.5em rgba(111, 202, 220, 0.75);
+  }
+}
+
+@keyframes after {
+  0% {
+    height: 0.5em;
+    box-shadow: 0.5em 1em rgba(61, 184, 143, 0.75), -0.5em -1em rgba(233, 169, 32, 0.75);
+  }
+  35% {
+    height: 2.5em;
+    box-shadow: 0.5em 0 rgba(61, 184, 143, 0.75), -0.5em 0 rgba(233, 169, 32, 0.75);
+  }
+  70% {
+    height: 0.5em;
+    box-shadow: 0.5em -1em rgba(61, 184, 143, 0.75), -0.5em 1em rgba(233, 169, 32, 0.75);
+  }
+  100% {
+    box-shadow: 0.5em 1em rgba(61, 184, 143, 0.75), -0.5em -1em rgba(233, 169, 32, 0.75);
+  }
+}
+
+
+
+
+.progress {
+  margin-top: 15px;
+  width: 100%;
+  max-width: 200px;
+  height: 6px;
+  background: #e1e4e8;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress .progress-bar {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #ffd33d, #ea4aaa 17%, #b34bff 34%, #01feff 51%, #ffd33d 68%, #ea4aaa 85%, #b34bff);
+  background-size: 300% 100%;
+  animation: progress-animation 2s linear infinite;
+}
+
+@keyframes progress-animation {
+  0% {
+    background-position: 100%;
+  }
+  100% {
+    background-position: 0;
+  }
+}
+
+.view-report {
+  text-align: center;
+  display: inline-block;
+  line-height: 1.5;
+  color: #0F9D58 !important;
+  font-family: 'Metal Mania Regular';
+  font-size: 20px;
+}
+
+.submit-div {
+  display: block;
+  text-align: center;
+}
+
+.submit-form {
+  display: inline-block;
+}
+
+.submit-button {
+  border: 0; 
+  background: none; 
+  color: #800000;
+  font-family: 'Metal Mania Regular';
+  font-size: 20px;
+}
+
+.submit-button:hover {
+  color: #E83015;
+  cursor: pointer;
+}
+
+.text-code {
+  font-family: 'Metal Mania Regular';
+  font-weight: normal;
+}
+
+.landing {
+  min-height: 400px;
+  background-color: #FFFFFF;
+}
+
+.landing .logo {
+  min-height: 110px;
+}
+.landing .subtitle {
+  color: #696e71;
+  font-weight: normal;
+}
+.landing .color-title {
+  color: #2e2e2e;
+}
+.landing .title-php {
+  color: #E83015;
+}
+.landing .title-php:before {
+  content: "<?";
+}
+
+.feature {
+  min-height: 400px;
+  background-color: #fff;
+}
+.feature .list li {
+  font-size: 16px;
+  margin: 8px 0;
+}
+.feature .description {
+  vertical-align: center;
+}
+.feature .description p {
+  font-size: 16px;
+}
+
+.intro .card:hover {
+  background-color: #f7f7f7;
+  cursor: pointer;
+}
+.intro pre {
+  background: #fff;
+  padding: 20px;
+  width: 100%;
+}
+.intro pre.command:before {
+  content: "$ ";
+}
+
+footer.page-footer .footer-copyright {
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+footer.page-footer {
+  bottom: 0;
+  color: #fff;
+  background-color: #2c3843 !important;
+}
+footer.page-footer a {
+  color: #fff;
+}
+
+.github-corner:hover .octo-arm {
+  animation: octocat-wave 560ms ease-in-out;
+}
+
+@keyframes octocat-wave {
+  0%, 100% {
+    transform: rotate(0);
+  }
+  20%, 60% {
+    transform: rotate(-25deg);
+  }
+  40%, 80% {
+    transform: rotate(10deg);
+  }
+}
+@media (max-width: 500px) {
+  .github-corner:hover .octo-arm {
+    animation: none;
+  }
+
+  .github-corner .octo-arm {
+    animation: octocat-wave 560ms ease-in-out;
+  }
+}
+/* use a hand cursor intead of arrow for the action buttons */
+.filepond--file-action-button {
+  cursor: pointer;
+}
+
+/* the text color of the drop label*/
+.filepond--drop-label {
+  color: #555;
+}
+
+/* underline color for "Browse" button */
+.filepond--label-action {
+  text-decoration-color: #aaa;
+}
+
+/* the background color of the filepond drop area */
+.filepond--panel-root {
+  background-color: #eee;
+}
+
+/* the border radius of the drop area */
+.filepond--panel-root {
+  border-radius: 0.5em;
+}
+
+/* the border radius of the file item */
+.filepond--item-panel {
+  border-radius: 0.5em;
+}
+
+/* the background color of the file and file panel (used when dropping an image) */
+.filepond--item-panel {
+  background-color: #555;
+}
+
+/* the background color of the drop circle */
+.filepond--drip-blob {
+  background-color: #999;
+}
+
+/* the background color of the black action buttons */
+.filepond--file-action-button {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* the icon color of the black action buttons */
+.filepond--file-action-button {
+  color: white;
+}
+
+/* the color of the focus ring */
+.filepond--file-action-button:hover,
+.filepond--file-action-button:focus {
+  box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.9);
+}
+
+/* the text color of the file status and info labels */
+.filepond--file {
+  color: white;
+}
+
+/* error state color */
+[data-filepond-item-state*=error] .filepond--item-panel,
+[data-filepond-item-state*=invalid] .filepond--item-panel {
+  background-color: red;
+}
+
+[data-filepond-item-state=processing-complete] .filepond--item-panel {
+  background-color: green;
+}
+
+/* bordered drop area */
+.filepond--panel-root {
+  background-color: transparent;
+  border: 2px solid #434343;
+}
+
+/*# sourceMappingURL=app.css.map */

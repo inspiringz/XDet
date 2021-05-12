@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <base href="/">
+  <title>XDet - Detect all webshells in PHP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <link rel="stylesheet" href="css/elements.theme.css">
+  <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
+  <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800|Source+Code+Pro:200,300,400,500,600,700,900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/filepond@4.4.12/dist/filepond.min.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body>
+  <a href='https://github.com/inspiringz/XDet' class="github-corner" aria-label="View source on GitHub" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+  <div class="landing border-bottom">
+    <div class="container">
+      <div class="e-content">
+        <div class="px-sm-3 py-3 py-sm-5 position-relative" style='padding-bottom: 3.29rem !important;'>
+          <div class="text-center mb-4">
+            <img style="color: #696e71" src="img/logo.png" alt="logo" height="150" />
+          </div>
+          <div class="text-center logo">
+            <h1 class="color-title text-code">XDET<span class="d-none d-md-inline"> - Detect all webshells in <span
+                  class="title-php">PHP</span></span></h1>
+            <h4 class="subtitle">检测所有的 Webshell 文件</h4>
+          </div>
+
+          <div class="d-flex justify-content-center" id="fpond-input">
+            <div style="width: 280px;">
+              <input type="file" style="opacity: 0" class="filepond" multiple>
+            </div>
+          </div>
+
+          <div class="submit-div" id="fpond-form">
+            <form id="xForm" method="POST" class="submit-form">
+              <input id="submit" type="submit" class="submit-button" value="Submit"> ·
+              <input id="reset" type="reset" value="Reset" class="submit-button">
+            </form>
+          </div>
+
+          <div class="d-flex justify-content-center" id="wait-cat" style="display: none !important;">
+            <img id="cat" src='img/cat.gif' height="100" />
+          </div>
+
+          <div id="progress-bar-div" style="display: none !important; text-align: center;">
+          <div class="d-flex justify-content-center" >
+            <div class="progress">
+              <span class="progress-bar" style="width: 10%" id="percent"></span>
+            </div>
+          </div>
+          <div class="d-flex justify-content-center">
+            <h6 style="margin-top: 10px;">检测样本上传中，请稍等...</h6>
+          </div>
+        </div>
+
+          <div id="processing" style="display: none !important;">
+          <div class="d-flex justify-content-center">
+            <div class="loader"></div>
+          </div>
+          <div class="d-flex justify-content-center">
+            <h6 style="margin-top: 10px;">样本已上传成功，提取特征进行检测中，请稍等...</h6>
+          </div>
+        </div>
+
+        <div id="scan-report" style="display: none !important;">
+          <div class="d-flex justify-content-center">
+            <h6 style="margin-top: 10px;">样本检测完成，点击下方查看扫描报告～</h6>
+          </div>
+          <div class="d-flex justify-content-center">
+            <a target="_blank" href="#" class="view-report" id="view-report">View Report</a>
+            <a href="#" class="view-report" id="back" style="margin-left: 15px;"> Go Back</a>
+          </div>
+        </div>
+        <div id="demo-chip" class="d-none justify-content-center ">
+            <div class="card shadow-sm col-lg-6 col-sm-12">
+              <div class="card-body text-left">
+                <pre id="demo-chip-data"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container intro pb-4">
+    <div class="row mt-4 justify-content-center">
+      <h4>XDet 应用场景</h4>
+    </div>
+    <div class="row mt-3 justify-content-center">
+      <div class="col col-lg-2 col-sm-4">
+        <div class="card shadow-sm">
+          <div class="card-body text-center">
+            <img src="img/bug.png" alt="vulnerabilities dig" width="80%" />
+            <p class="mt-2 mb-0">漏洞挖掘</p>
+          </div>
+        </div>
+      </div>
+      <div class="col col-lg-2 col-sm-4">
+        <div class="card shadow-sm">
+          <div class="card-body text-center">
+            <img src="img/goal.png" alt="ctf game" width="80%" alt="">
+            <p class="mt-2 mb-0">CTF 竞赛</p>
+          </div>
+        </div>
+      </div>
+      <div class="col col-lg-2 col-sm-4">
+        <div class="card shadow-sm">
+          <div class="card-body text-center">
+            <img src="img/backdoor.png" alt="backdoor scan" width="80%" />
+            <p class="mt-2 mb-0">后门查找</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-3 justify-content-center">
+      <h4>XDet 特性</h4>
+    </div>
+    <div class="row mt-3 justify-content-center">
+      <div class="col col-lg-6 col-sm-12" style="align-items: center; justify-content: center; height: 160px;">
+        <ul class="cloud" role="navigation" aria-label="Webdev word cloud">
+          <li><a href="#" data-weight="2">TF-IDF</a></li>
+          <li><a href="#" data-weight="2">CLI</a></li>
+          <li><a href="#" data-weight="8">XGBoost</a></li>
+          <li><a href="#" data-weight="4">GUI</a></li>
+          <li><a href="#" data-weight="2">Web</a></li>
+          <li><a href="#" data-weight="3">UI</a></li>
+          <li><a href="#" data-weight="8">Linux</a></li>
+          <li><a href="#" data-weight="7">Windows</a></li>
+          <li><a href="#" data-weight="5">MacOS</a></li>
+          <li><a href="#" data-weight="2">FilePond</a></li>
+          <li><a href="#" data-weight="5">BootStrap</a></li>
+          <li><a href="#" data-weight="2">OPCode</a></li>
+          <li><a href="#" data-weight="3">VLD</a></li>
+          <li><a href="#" data-weight="8">Machine</a></li>
+          <li><a href="#" data-weight="5">Learning</a></li>
+          <li><a href="#" data-weight="8">ML</a></li>
+          <li><a href="#" data-weight="7">sklearn</a></li>
+          <li><a href="#" data-weight="4">Flask</a></li>
+          <li><a href="#" data-weight="7">PHP</a></li>
+          <li><a href="#" data-weight="6">rich</a></li>
+          <li><a href="#" data-weight="5">PySimpleGUI</a></li>
+          <li><a href="#" data-weight="4">pickle</a></li>
+          <li><a href="#" data-weight="1">Unknown</a></li>
+          <li><a href="#" data-weight="7">Webshell</a></li>
+          <li><a href="#" data-weight="3">sample</a></li>
+          <li><a href="#" data-weight="6">JQuery</a></li>
+          <li><a href="#" data-weight="2">Element</a></li>
+          <li><a href="#" data-weight="4">Detection</a></li>
+          </ul>
+      </div>
+    </div>
+  </div>
+  <div class="feature border-top pt-4 pb-4">
+    <div class="container">
+      <div class="row justify-content-center">
+        <h4>XDet 界面</h4>
+      </div>
+      <div class="row justify-content-center mt-4">
+        <div class="col-sm" style="margin-left: 20px;">
+          <img src="img/gui-demo-x.png" class="code-demo" alt="" height="370px" >
+        </div>
+        <div class="col-sm">
+          <img src="img/cli-4.png" class="code-demo" alt="" height="370px" >
+        </div>
+      </div>
+      
+      <div class="row justify-content-start description mt-2">
+        <p style="margin-top: 15px; margin-left: 30px;">演示报告：
+          <a class="badge badge-light" target="_blank" href="report/XDet-2021-05-10-164703.html"
+            target="_blank">XDet-2021-05-10-164703</a>
+        </p>
+      </div>
+    </div>
+  </div>
+  <!-- Footer -->
+  <footer class="footer page-footer font-small">
+
+    <!-- Copyright -->
+    <div class="footer-copyright text-center py-3"><a href="https://github.com/inspiringz/XDet">XDet</a>  ©  2021
+    </div>
+    <!-- Copyright -->
+
+  </footer>
+  <!-- Footer -->
+  <script src="vendor/jquery/jquery-3.6.0.min.js"></script>
+  <script src="vendor/popper.js/popper.min.js"></script>
+  <script src="vendor/bootstrap/bootstrap.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/combine/npm/filepond@4.4.12,npm/filepond-plugin-file-validate-size@2.2.0,npm/filepond-plugin-file-validate-type@1.2.4,npm/filepond-plugin-file-encode@2.1.10"></script>
+  <script src='js/main.js'></script>
+
+</body>
+
+</html>
