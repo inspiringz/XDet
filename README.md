@@ -53,12 +53,14 @@ OPCode 提取：
 
 
 <details>
-<summary>机器学习</summary>
+<summary>Machine Learning</summary>
+
 ![image-20210613210324764](images/image-20210613210324764.png)
 </details>
 
 <details>
 <summary>Web Application</summary>
+
 ![image-20210613210516105](images/image-20210613210516105.png)
 
 前端 UI 界面：
@@ -74,6 +76,7 @@ OPCode 提取：
 
 <details>
 <summary>CLI Application</summary>
+
 ![image-20210613210558050](images/image-20210613210558050.png)
 
 运行结果演示：
@@ -85,6 +88,7 @@ OPCode 提取：
 
 <details>
 <summary>GUI Application</summary>
+
 ![image-20210613210638356](images/image-20210613210638356.png)
 
 运行结果演示：
