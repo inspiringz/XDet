@@ -1,0 +1,323 @@
+<?php
+require('../class/connect.php');
+require('../class/db_sql.php');
+require('../class/functions.php');
+require('../class/t_functions.php');
+require('../data/dbcache/class.php');
+require LoadLang('pub/fun.php');
+$link=db_connect();
+$empire=new mysqlquery();
+if(!$public_r['opentags'])
+{
+	printerror('CloseTags','',1);
+}
+$tagr=array();
+$add='';
+$search='';
+$GLOBALS['navclassid']=0;
+//TAGS
+$tagid=(int)$_GET['tagid'];
+//ETAGID
+$public_diyr['chetagid']=0;
+if(!$tagid&&@strstr($_GET['tagname'],'etagid'))
+{
+	$tagid=str_replace('etagid','',$_GET['tagname']);
+	$tagid=(int)$tagid;
+	$public_diyr['chetagid']=1;
+	if(!$tagid)
+	{
+		printerror('HaveNotTags','',1);
+	}
+}
+if($tagid)
+{
+	$tagr=$empire->fetch1("select tagname,num,tagtitle,tagkey,tagdes,fclast from {$dbtbpre}enewstags where tagid='$tagid'");
+	if(!$tagr['tagname'])
+	{
+		printerror('HaveNotTags','',1);
+	}
+	$tagname=$tagr['tagname'];
+	$num=$tagr['num'];
+	$search.="&tagid=$tagid";
+}
+else
+{
+	$tagname=RepPostVar($_GET['tagname']);
+	if(!$tagname)
+	{
+		printerror('HaveNotTags','',1);
+	}
+	$tagr=$empire->fetch1("select tagid,num,tagtitle,tagkey,tagdes,fclast from {$dbtbpre}enewstags where tagname='$tagname' limit 1");
+	if(!$tagr['tagid'])
+	{
+		printerror('HaveNotTags','',1);
+	}
+	$tagid=$tagr['tagid'];
+	$num=$tagr['num'];
+	$search.="&tagname=$tagname";
+}
+//模型ID
+$mid=(int)$_GET['mid'];
+if($mid)
+{
+	if(empty($emod_r[$mid]['tbname']))
+	{
+		printerror('ErrorUrl','',1);
+	}
+	$add.=" and mid='$mid'";
+	$search.='&mid='.$mid;
+}
+$pagetitle=$tagr['tagtitle']?$tagr['tagtitle']:$tagname;
+$pagekey=$tagr['tagkey']?$tagr['tagkey']:$tagname;
+$pagedes=$tagr['tagdes']?$tagr['tagdes']:$tagname;
+$classimg=$public_r[newsurl].'e/data/images/notimg.gif';
+$url="<a href='".ReturnSiteIndexUrl()."'>".$fun_r['index']."</a>&nbsp;>&nbsp;".$fun_r['TagsInfoList']."&nbsp;>&nbsp;".$tagname;
+$pageecms=1;
+$pageclassid=0;
+$have_class=1;
+//栏目
+$trueclassid=0;
+$classid=$_GET['classid'];
+if($classid)
+{
+	$classid=RepPostVar($classid);
+	if(strstr($classid,','))//多栏目
+	{
+		$son_r=sys_ReturnMoreClass($classid,1);
+		$trueclassid=$son_r[0];
+		$add.=' and ('.$son_r[1].')';
+	}
+	else
+	{
+		$trueclassid=intval($classid);
+		if($class_r[$trueclassid][islast])//终极栏目
+		{
+			$add.=" and classid='$trueclassid'";
+			$have_class=0;
+		}
+		else
+		{
+			$add.=' and '.ReturnClass($class_r[$trueclassid][sonclass]);
+		}
+		$pageclassid=$trueclassid;
+		$GLOBALS['navclassid']=$trueclassid;
+	}
+	if(empty($class_r[$trueclassid][tbname]))
+	{
+		printerror('ErrorUrl','',1);
+	}
+	$search.='&classid='.$classid;
+}
+//时间
+if($_GET['endtime'])
+{
+	$starttime=RepPostVar($_GET['starttime']);
+	if(empty($starttime))
+	{
+		$starttime='0000-00-00';
+	}
+	$endtime=RepPostVar($_GET['endtime']);
+	if(empty($endtime))
+	{
+		$endtime='0000-00-00';
+	}
+	if($endtime!='0000-00-00')
+	{
+		$add.=" and (newstime BETWEEN '".to_time($starttime." 00:00:00")."' and '".to_time($endtime." 23:59:59")."')";
+		$search.='&starttime='.$starttime.'&endtime='.$endtime;
+	}
+}
+//每页显示记录数
+$line=(int)$_GET['line'];
+if($line<10||$line>80)
+{
+	$line=intval($public_r['tagslistnum']);
+}
+if(empty($line))
+{
+	printerror('ErrorUrl','',1);
+}
+//列表模板
+$tempid=(int)$_GET['tempid'];
+if(empty($tempid))
+{
+	$tempid=$public_r['tagstempid'];
+}
+else
+{
+	DtTempIsClose($tempid,'listtemp');
+}
+if(empty($tempid))
+{
+	printerror('ErrorUrl','',1);
+}
+$tempr=$empire->fetch1("select tempid,temptext,subnews,listvar,rownum,showdate,modid,subtitle,docode from ".GetTemptb("enewslisttemp")." where tempid='$tempid'");
+if(empty($tempr[tempid]))
+{
+	printerror('ErrorUrl','',1);
+}
+$search.='&line='.$line.'&tempid='.$tempid;
+$addorder='newstime desc';
+$myorder=(int)$_GET['myorder'];
+if($myorder)
+{
+	$addorder='newstime asc';
+	$search.='&myorder='.$myorder;
+}
+if(empty($mid))
+{
+	$mid=$tempr['modid'];
+}
+$page=(int)$_GET['page'];
+$page=RepPIntvar($page);
+$start=0;
+$page_line=10;//每页显示链接数
+$offset=$page*$line;//总偏移量
+//缓存
+if($public_r['ctimeopen'])
+{
+	$public_r['usetotalnum']=0;
+}
+$ecms_tofunr=array();
+$ecms_tofunr['cacheuse']=0;
+$ecms_tofunr['cachetype']='tagspage';
+$ecms_tofunr['cacheids']=$tagid.','.$page.','.$tempid;
+$ecms_tofunr['cachepath']='empirecms';
+$ecms_tofunr['cachedatepath']='ctags/'.$tagid;
+$ecms_tofunr['cachetime']=$public_r['ctimetags'];
+$ecms_tofunr['cachelasttime']=$public_r['ctimelast'];
+$ecms_tofunr['cachelastedit']=$tagr['fclast'];
+$ecms_tofunr['cacheopen']=Ecms_eCacheCheckOpen($ecms_tofunr['cachetime']);
+$ecms_tofunr['cachehavedo']=0;
+if($ecms_tofunr['cacheopen']==1&&empty($add)&&$line==$public_r['tagslistnum']&&!$myorder)
+{
+	$ecms_tofunr['cacheuse']=Ecms_eCacheOut($ecms_tofunr,0);
+	$ecms_tofunr['cachehavedo']=1;
+}
+//缓存
+//系统模型
+$ret_r=ReturnReplaceListF($mid);
+//总数
+if(!empty($add))
+{
+	$totalnum=(int)$_GET['totalnum'];
+	if(!$public_r['usetotalnum'])
+	{
+		$totalnum=0;
+	}
+	if($totalnum<1)
+	{
+		$totalquery="select count(*) as total from {$dbtbpre}enewstagsdata where tagid='$tagid'".$add;
+		$num=$empire->gettotal($totalquery);
+	}
+	else
+	{
+		$num=$totalnum;
+	}
+	if($public_r['usetotalnum'])
+	{
+		$search.='&totalnum='.$num;
+	}
+}
+//checkpageno
+eCheckListPageNo($page,$line,$num);
+$query="select classid,id from {$dbtbpre}enewstagsdata where tagid='$tagid'".$add;
+$query.=" order by ".$addorder." limit $offset,$line";
+$sql=$empire->query($query);
+if(!empty($public_r['rewritetags'])&&empty($add)&&($search=='&tagname='.$tagname.'&line='.$public_r['tagslistnum'].'&tempid='.$public_r['tagstempid']||$search=='&tagid='.$tagid.'&line='.$public_r['tagslistnum'].'&tempid='.$public_r['tagstempid'])&&!$myorder)
+{
+	//伪静态
+	$pagefunr=eReturnRewriteTagsUrl($tagid,$tagr['tagid']?$tagname:'etagid'.$tagid,0);
+	$pagefunr['repagenum']=0;
+	//分页
+	if($pagefunr['rewrite']==1)
+	{
+		$listpage=InfoUsePage($num,$line,$page_line,$start,$page,$search,$pagefunr);
+	}
+	else
+	{
+		$listpage=page1($num,$line,$page_line,$start,$page,$search);
+	}
+}
+else
+{
+	$listpage=page1($num,$line,$page_line,$start,$page,$search);//分页
+}
+//页面支持标签
+if($public_r['dtcanbq'])
+{
+	$tempr[temptext]=DtNewsBq('list'.$tempid,$tempr[temptext],0);
+}
+else
+{
+	if($public_r['searchtempvar'])
+	{
+		$tempr[temptext]=ReplaceTempvar($tempr[temptext]);
+	}
+}
+$listtemp=$tempr[temptext];
+$rownum=$tempr[rownum];
+if(empty($rownum))
+{$rownum=1;}
+$formatdate=$tempr[showdate];
+$subnews=$tempr[subnews];
+$subtitle=$tempr[subtitle];
+$docode=$tempr[docode];
+$modid=$tempr[modid];
+$listvar=str_replace('[!--news.url--]',$public_r[newsurl],$tempr[listvar]);
+//公共
+$listtemp=str_replace('[!--newsnav--]',$url,$listtemp);//位置导航
+$listtemp=Class_ReplaceSvars($listtemp,$url,$pageclassid,$pagetitle,$pagekey,$pagedes,$classimg,$addr,$pageecms);
+$listtemp=str_replace('[!--page.stats--]','',$listtemp);
+$listtemp=str_replace('[!--show.page--]',$listpage,$listtemp);
+$listtemp=str_replace('[!--show.listpage--]',$listpage,$listtemp);
+$listtemp=str_replace('[!--list.pageno--]',$page+1,$listtemp);
+//取得列表模板
+$list_exp="[!--empirenews.listtemp--]";
+$list_r=explode($list_exp,$listtemp);
+$listtext=$list_r[1];
+$no=$offset+1;
+$changerow=1;
+while($r=$empire->fetch($sql))
+{
+	if(empty($class_r[$r[classid]][tbname]))
+	{
+		continue;
+	}
+	$infor=$empire->fetch1("select * from {$dbtbpre}ecms_".$class_r[$r[classid]][tbname]." where id='$r[id]' limit 1");
+	if(empty($infor['id']))
+	{
+		continue;
+	}
+	//替换列表变量
+	$repvar=ReplaceListVars($no,$listvar,$subnews,$subtitle,$formatdate,$url,$have_class,$infor,$ret_r,$docode);
+	$listtext=str_replace("<!--list.var".$changerow."-->",$repvar,$listtext);
+	$changerow+=1;
+	//超过行数
+	if($changerow>$rownum)
+	{
+		$changerow=1;
+		$string.=$listtext;
+		$listtext=$list_r[1];
+	}
+	$no++;
+}
+//多余数据
+if($changerow<=$rownum&&$listtext<>$list_r[1])
+{
+	$string.=$listtext;
+}
+$string=$list_r[0].$string.$list_r[2];
+//缓存
+if($ecms_tofunr['cacheopen']==1&&$ecms_tofunr['cachehavedo']==1)
+{
+	Ecms_eCacheIn($ecms_tofunr,stripSlashes($string));
+}
+else
+{
+	echo stripSlashes($string);
+}
+//缓存
+db_close();
+$empire=null;
+?>

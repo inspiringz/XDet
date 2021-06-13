@@ -1,0 +1,214 @@
+<?php
+if(!defined('empirecms'))
+{
+	exit();
+}
+
+//是否登陆
+function ViewCheckLogin($infor){
+	global $empire,$public_r,$ecms_config,$toreturnurl,$gotourl;
+	$userid=(int)getcvar('mluserid');
+	$username=RepPostVar(getcvar('mlusername'));
+	$rnd=RepPostVar(getcvar('mlrnd'));
+	if(!$userid)
+	{
+		if(!getcvar('returnurl'))
+		{
+			esetcookie("returnurl",$toreturnurl,0);
+		}
+		eCheckLevelInfo_ViewInfoMsg($ckuser,$infor,'NotLogin');
+	}
+	//ck
+	$qcklgr=qCheckLoginAuthstr();
+	if(!$qcklgr['islogin'])
+	{
+		EmptyEcmsCookie();
+		if(!getcvar('returnurl'))
+		{
+			esetcookie("returnurl",$toreturnurl,0);
+		}
+		eCheckLevelInfo_ViewInfoMsg($ckuser,$infor,'NotLogin');
+	}
+	//db
+	$cr=$empire->fetch1("select ".eReturnSelectMemberF('checked,userid,username,groupid,userfen,userdate,zgroupid,ingid,agid,isern')." from ".eReturnMemberTable()." where ".egetmf('userid')."='$userid' and ".egetmf('username')."='$username' and ".egetmf('rnd')."='$rnd' limit 1");
+	if(!$cr['userid'])
+	{
+		EmptyEcmsCookie();
+		if(!getcvar('returnurl'))
+		{
+			esetcookie("returnurl",$toreturnurl,0);
+		}
+		eCheckLevelInfo_ViewInfoMsg($cr,$infor,'SingleLogin');
+	}
+	if($cr['checked']==0)
+	{
+		EmptyEcmsCookie();
+		if(!getcvar('returnurl'))
+		{
+			esetcookie("returnurl",$toreturnurl,0);
+		}
+		eCheckLevelInfo_ViewInfoMsg($cr,$infor,'NotCheckUser');
+	}
+	//默认会员组
+	if(empty($cr['groupid']))
+	{
+		$user_groupid=eReturnMemberDefGroupid();
+		$usql=$empire->query("update ".eReturnMemberTable()." set ".egetmf('groupid')."='$user_groupid' where ".egetmf('userid')."='".$cr[userid]."'");
+		$cr['groupid']=$user_groupid;
+	}
+	//是否过期
+	if($cr['userdate'])
+	{
+		if($cr['userdate']-time()<=0)
+		{
+			OutTimeZGroup($cr['userid'],$cr['zgroupid']);
+			$cr['userdate']=0;
+			if($cr['zgroupid'])
+			{
+				$cr['groupid']=$cr['zgroupid'];
+				$cr['zgroupid']=0;
+			}
+		}
+	}
+	$re['userid']=$cr['userid'];
+	$re['username']=$cr['username'];
+	$re['userfen']=$cr['userfen'];
+	$re['groupid']=$cr['groupid'];
+	$re['userdate']=$cr['userdate'];
+	$re['zgroupid']=$cr['zgroupid'];
+	$re['ingid']=$cr['ingid'];
+	$re['agid']=$cr['agid'];
+	$re['isern']=$cr['isern'];
+	$re['checked']=$cr['checked'];
+	return $re;
+}
+
+//查看权限函数
+function CheckShowNewsLevel($infor){
+	global $check_path,$level_r,$empire,$gotourl,$toreturnurl,$public_r,$dbtbpre,$class_r;
+	$groupid=$infor['groupid'];
+	$userfen=$infor['userfen'];
+	$id=$infor['id'];
+	$classid=$infor['classid'];
+	//是否登陆
+	$user_r=ViewCheckLogin($infor);
+	//验证权限
+	if($class_r[$infor[classid]]['cgtoinfo'])//栏目设置
+	{
+		$checkcr=$empire->fetch1("select cgroupid from {$dbtbpre}enewsclass where classid='$infor[classid]'");
+		if($checkcr['cgroupid'])
+		{
+			if(!strstr($checkcr[cgroupid],','.$user_r[groupid].','))
+			{
+				$infor['eclass_cgroupid']=$checkcr[cgroupid];
+				if(!getcvar('returnurl'))
+				{
+					esetcookie("returnurl",$toreturnurl,0);
+				}
+				eCheckLevelInfo_ViewInfoMsg($user_r,$infor,'NotLevelClass');
+			}
+		}
+	}
+	if($groupid)//信息设置
+	{
+		if($groupid>0)//会员组
+		{
+			if($level_r[$groupid][level]>$level_r[$user_r[groupid]][level])
+			{
+				if(!getcvar('returnurl'))
+				{
+					esetcookie("returnurl",$toreturnurl,0);
+				}
+				eCheckLevelInfo_ViewInfoMsg($user_r,$infor,'NotLevelGroup');
+			}
+		}
+		else//访问组
+		{
+			$vgroupid=0-$groupid;
+			$ckvgresult=eMember_ReturnCheckViewGroup($user_r,$vgroupid);
+			if($ckvgresult<>'empire.cms')
+			{
+				if(!getcvar('returnurl'))
+				{
+					esetcookie("returnurl",$toreturnurl,0);
+				}
+				eCheckLevelInfo_ViewInfoMsg($user_r,$infor,'NotLevelViewGroup');
+			}
+		}
+	}
+	//扣点
+	if(!empty($userfen))
+	{
+		//是否有历史记录
+		$bakr=$empire->fetch1("select id,truetime from {$dbtbpre}enewsdownrecord where id='$id' and classid='$classid' and userid='$user_r[userid]' and online=2 order by truetime desc limit 1");
+		if($bakr['id']&&(time()-$bakr['truetime']<=$public_r['redoview']*3600))
+		{}
+		else
+		{
+			if($user_r[userdate]-time()>0)//包月
+			{}
+			else
+			{
+				if($user_r[userfen]<$userfen)
+				{
+					if(!getcvar('returnurl'))
+					{
+						esetcookie("returnurl",$toreturnurl,0);
+					}
+					eCheckLevelInfo_ViewInfoMsg($user_r,$infor,'NotUserfen');
+				}
+				//扣点
+				$usql=$empire->query("update ".eReturnMemberTable()." set ".egetmf('userfen')."=".egetmf('userfen')."-".$userfen." where ".egetmf('userid')."='$user_r[userid]'");
+			}
+			//备份下载记录
+			$utfusername=$user_r['username'];
+			BakDown($classid,$id,0,$user_r['userid'],$utfusername,$infor[title],$userfen,2);
+		}
+	}
+}
+$check_infoid=(int)$check_infoid;
+$check_classid=(int)$check_classid;
+if(!defined('PageCheckLevel'))
+{
+	include_once($check_path.'e/class/connect.php');
+	if(!defined('InEmpireCMS'))
+	{
+		exit();
+	}
+	include_once(ECMS_PATH.'e/class/db_sql.php');
+	include_once(ECMS_PATH.'e/data/dbcache/class.php');
+	include_once(ECMS_PATH.'e/data/dbcache/MemberLevel.php');
+	$link=db_connect();
+	$empire=new mysqlquery();
+	$check_tbname=RepPostVar($check_tbname);
+	$checkinfor=$empire->fetch1("select * from {$dbtbpre}ecms_".$check_tbname." where id='$check_infoid' limit 1");
+	if(!$checkinfor['id']||$checkinfor['classid']!=$check_classid)
+	{
+		echo"<script>alert('此信息不存在');history.go(-1);</script>";
+		exit();
+	}
+	//副表
+	$check_mid=$class_r[$checkinfor[classid]]['modid'];
+	$checkfinfor=$empire->fetch1("select ".ReturnSqlFtextF($check_mid)." from {$dbtbpre}ecms_".$check_tbname."_data_".$checkinfor[stb]." where id='$checkinfor[id]' limit 1");
+	$checkinfor=array_merge($checkinfor,$checkfinfor);
+}
+else
+{
+	$check_tbname=RepPostVar($check_tbname);
+}
+require_once(ECMS_PATH.'e/member/class/user.php');
+//验证IP
+eCheckAccessDoIp('showinfo');
+if($checkinfor['groupid']||$class_r[$checkinfor['classid']]['cgtoinfo'])
+{
+	include_once(ECMS_PATH.'e/template/public/checklevel/info1.php');
+	$toreturnurl=eReturnSelfPage(1);	//返回页面地址
+	$gotourl=$ecms_config['member']['loginurl']?$ecms_config['member']['loginurl']:$public_r['newsurl']."e/member/login/";	//登陆地址
+	CheckShowNewsLevel($checkinfor);
+}
+if(!defined('PageCheckLevel'))
+{
+	db_close();
+	$empire=null;
+}
+?>

